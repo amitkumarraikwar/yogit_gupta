@@ -11,6 +11,20 @@ To fetch images from a Google Drive folder, the application needs to interact wi
 3.  **Authentication**:
     -   **API Key**: Works if the folder is shared as "Anyone with the link can view".
     -   **Service Account**: Best for server-side access without requiring user login.
+
+## Security & Deployment
+
+For security reasons, do **NOT** push `service-account.json` to GitHub. It is listed in `.gitignore`.
+
+### Production Setup (Vercel)
+If you are deploying to Vercel, you must add the following **Environment Variables** in your Vercel Dashboard:
+
+1.  **`GOOGLE_SERVICE_ACCOUNT_EMAIL`**: The `client_email` from your JSON (e.g., `biodata@yogit-gupta.iam.gserviceaccount.com`).
+2.  **`GOOGLE_PRIVATE_KEY`**: The entire `private_key` string from your JSON (including the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` parts).
+
+### Local Setup
+For local development, keep the `service-account.json` file in the root directory. The app will automatically use it if found.
+
 4.  **Display**: The API returns file IDs and names. These IDs are then used to construct direct image URLs (e.g., `https://drive.google.com/uc?export=view&id=FILE_ID`) to show them in your app.
 
 ---
