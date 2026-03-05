@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { extractFolderId } from "@/lib/googleDriveUtils";
 
 const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
     const [activeTab, setActiveTab] = useState("content");
+    const [driveUrl, setDriveUrl] = useState("");
+    const [isFetchingDrive, setIsFetchingDrive] = useState(false);
+    const [driveError, setDriveError] = useState("");
 
     const updateField = (field, value) => {
         onUpdate({ ...event, [field]: value });
@@ -32,6 +36,38 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
     const removeImageField = (index) => {
         const newImages = event.images.filter((_, i) => i !== index);
         updateField("images", newImages);
+    };
+
+    const fetchFromDrive = async () => {
+        const folderId = extractFolderId(driveUrl);
+        if (!folderId) {
+            setDriveError("Invalid Google Drive folder URL");
+            return;
+        }
+
+        setIsFetchingDrive(true);
+        setDriveError("");
+
+        try {
+            const res = await fetch(`/api/drive?folderId=${folderId}`);
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            if (data.files && data.files.length > 0) {
+                const newImageUrls = data.files.map(f => f.src);
+                // Filter out empty strings and append new images
+                const existingImages = (event.images || []).filter(img => img.trim() !== "");
+                updateField("images", [...existingImages, ...newImageUrls]);
+                setDriveUrl(""); // Clear input on success
+            } else {
+                setDriveError("No images found in this folder.");
+            }
+        } catch (err) {
+            setDriveError(err.message || "Failed to fetch images");
+        } finally {
+            setIsFetchingDrive(false);
+        }
     };
 
     const fonts = [
@@ -150,6 +186,35 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                                             <span className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-all">+</span>
                                             Add Image
                                         </button>
+                                    </div>
+
+                                    {/* Google Drive Import Section */}
+                                    <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 mb-6 group transition-all hover:bg-blue-50 hover:shadow-md">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" />
+                                            </svg>
+                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Bulk Import from Google Drive</span>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="text"
+                                                value={driveUrl}
+                                                onChange={(e) => setDriveUrl(e.target.value)}
+                                                placeholder="Paste folder link (Anyone with link can view)"
+                                                className="flex-1 px-5 py-3 bg-white border-transparent rounded-xl focus:ring-4 focus:ring-blue-100 transition-all outline-none font-medium placeholder:text-gray-300 text-sm"
+                                            />
+                                            <button
+                                                onClick={fetchFromDrive}
+                                                disabled={isFetchingDrive || !driveUrl}
+                                                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-[10px] shadow-lg shadow-blue-500/20 hover:bg-blue-700 disabled:bg-gray-200 disabled:shadow-none transition-all active:scale-95 uppercase tracking-widest whitespace-nowrap"
+                                            >
+                                                {isFetchingDrive ? "Fetching..." : "Fetch All"}
+                                            </button>
+                                        </div>
+                                        {driveError && (
+                                            <p className="mt-2 text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">{driveError}</p>
+                                        )}
                                     </div>
 
                                     <div className="space-y-3">
