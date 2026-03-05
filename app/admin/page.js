@@ -11,6 +11,7 @@ export default function AdminPage() {
     const [events, setEvents] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null); // null means list view, -1 means new event
     const [currentEvent, setCurrentEvent] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [globalStyles, setGlobalStyles] = useState({
         pageBackground: "#ffffff",
         headingFont: "Playfair Display, serif",
@@ -22,31 +23,43 @@ export default function AdminPage() {
     });
 
     useEffect(() => {
-        // Load Events
-        const savedData = localStorage.getItem("eventData");
-        if (savedData) {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
-                const parsed = JSON.parse(savedData);
-                setEvents(Array.isArray(parsed) ? parsed : [parsed]);
-            } catch (e) {
-                console.error("Error loading events", e);
-            }
-        }
+                // Load Events from MongoDB
+                const eventsRes = await fetch('/api/events');
+                const eventsData = await eventsRes.json();
+                if (Array.isArray(eventsData)) {
+                    setEvents(eventsData);
+                }
 
-        // Load Global Styles
-        const savedStyles = localStorage.getItem("globalStyles");
-        if (savedStyles) {
-            try {
-                setGlobalStyles(JSON.parse(savedStyles));
+                // Load Global Styles from MongoDB
+                const configRes = await fetch('/api/config');
+                const configData = await configRes.json();
+                if (configData && Object.keys(configData).length > 0) {
+                    setGlobalStyles(configData);
+                }
             } catch (e) {
-                console.error("Error loading global styles", e);
+                console.error("Error loading data from MongoDB", e);
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
+
+        fetchData();
     }, []);
 
-    const saveGlobalStyles = (newStyles) => {
+    const saveGlobalStyles = async (newStyles) => {
         setGlobalStyles(newStyles);
-        localStorage.setItem("globalStyles", JSON.stringify(newStyles));
+        try {
+            await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStyles),
+            });
+        } catch (e) {
+            console.error("Error saving global styles to MongoDB", e);
+        }
     };
 
     const normalizeUrl = (url) => {
@@ -76,15 +89,23 @@ export default function AdminPage() {
         setCurrentEvent({ ...events[index] });
     };
 
-    const handleDeleteEvent = (index) => {
+    const handleDeleteEvent = async (index) => {
         if (confirm("Are you sure you want to delete this event?")) {
             const newEvents = events.filter((_, i) => i !== index);
             setEvents(newEvents);
-            localStorage.setItem("eventData", JSON.stringify(newEvents));
+            try {
+                await fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEvents),
+                });
+            } catch (e) {
+                console.error("Error deleting event from MongoDB", e);
+            }
         }
     };
 
-    const handleSaveEvent = () => {
+    const handleSaveEvent = async () => {
         if (!currentEvent.heading || !currentEvent.description || currentEvent.images.some(img => !img)) {
             alert("Please fill in all fields.");
             return;
@@ -103,10 +124,28 @@ export default function AdminPage() {
         }
 
         setEvents(newEvents);
-        localStorage.setItem("eventData", JSON.stringify(newEvents));
+
+        try {
+            await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEvents),
+            });
+        } catch (e) {
+            console.error("Error saving event to MongoDB", e);
+        }
+
         setEditingIndex(null);
         setCurrentEvent(null);
     };
+
+    if (isLoading) {
+        return (
+            <main className="flex min-h-screen bg-[#0a0a0a] items-center justify-center">
+                <div className="text-white text-sm font-bold uppercase tracking-widest animate-pulse">Loading Dashboard...</div>
+            </main>
+        );
+    }
 
     return (
         <main className="flex min-h-screen bg-[#0a0a0a]">

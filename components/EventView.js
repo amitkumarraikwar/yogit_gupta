@@ -6,27 +6,77 @@ import EventPage from "@/components/EventPage";
 export default function EventView() {
     const [events, setEvents] = useState([]);
     const [globalStyles, setGlobalStyles] = useState(null);
+    const [isPrinting, setIsPrinting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const data = localStorage.getItem("eventData");
-        if (data) {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
-                const parsed = JSON.parse(data);
-                setEvents(Array.isArray(parsed) ? parsed : [parsed]);
-            } catch (e) {
-                console.error("Error parsing event data", e);
-            }
-        }
+                // Load Events from MongoDB
+                const eventsRes = await fetch('/api/events');
+                const eventsData = await eventsRes.json();
+                if (Array.isArray(eventsData)) {
+                    setEvents(eventsData);
+                }
 
-        const savedGlobal = localStorage.getItem("globalStyles");
-        if (savedGlobal) {
-            try {
-                setGlobalStyles(JSON.parse(savedGlobal));
+                // Load Global Styles from MongoDB
+                const configRes = await fetch('/api/config');
+                const configData = await configRes.json();
+                if (configData && Object.keys(configData).length > 0) {
+                    setGlobalStyles(configData);
+                }
             } catch (e) {
-                console.error("Error parsing global styles", e);
+                console.error("Error loading data for EventView", e);
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
+
+        fetchData();
     }, []);
+
+    const handlePrint = () => {
+        setIsPrinting(true);
+
+        // Wait for all images to load
+        const allImages = document.querySelectorAll('img');
+        const totalImages = allImages.length;
+        let loadedImages = 0;
+
+        const checkImages = () => {
+            loadedImages = 0;
+            allImages.forEach(img => {
+                if (img.complete) loadedImages++;
+            });
+
+            if (loadedImages === totalImages) {
+                setIsPrinting(false);
+                window.print();
+            } else {
+                // Check again in 200ms
+                setTimeout(checkImages, 200);
+            }
+        };
+
+        if (totalImages === 0) {
+            setIsPrinting(false);
+            window.print();
+        } else {
+            checkImages();
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Loading Events...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!events || events.length === 0) {
         return (
@@ -50,10 +100,6 @@ export default function EventView() {
         );
     }
 
-    const handlePrint = () => {
-        window.print();
-    };
-
     return (
         <div className="flex flex-col items-center min-h-screen py-10 print:py-0 bg-gray-100 print:bg-white pb-20 font-sans">
             {/* Global Action Buttons (Hidden on Print) */}
@@ -69,12 +115,25 @@ export default function EventView() {
                 </button>
                 <button
                     onClick={handlePrint}
-                    className="px-8 py-4 bg-black text-white rounded-2xl hover:bg-gray-800 transition-all font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 active:scale-95"
+                    disabled={isPrinting}
+                    className="px-8 py-4 bg-black text-white rounded-2xl hover:bg-gray-800 transition-all font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Print or Save PDF
+                    {isPrinting ? (
+                        <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Preparing...
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Print or Save PDF
+                        </>
+                    )}
                 </button>
             </div>
 

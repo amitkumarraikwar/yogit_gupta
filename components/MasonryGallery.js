@@ -29,7 +29,8 @@ const MasonryGallery = ({ images = [] }) => {
                             src={normalizedSrc}
                             alt={`Event image ${index + 1}`}
                             className="w-full h-auto block"
-                            loading="lazy"
+                            loading="eager"
+                            crossOrigin="anonymous"
                             referrerPolicy="no-referrer"
                             onError={(e) => {
                                 const parent = e.target.parentElement;
