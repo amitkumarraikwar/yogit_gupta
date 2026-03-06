@@ -41,6 +41,7 @@ export default function AdminPage() {
                 }
             } catch (e) {
                 console.error("Error loading data from MongoDB", e);
+                // Optionally show an error state if needed
             } finally {
                 setIsLoading(false);
             }
@@ -76,6 +77,7 @@ export default function AdminPage() {
         }
 
         setIsLoading(true);
+        let importSuccessful = false;
         try {
             // Import Events
             if (savedEvents) {
@@ -87,6 +89,10 @@ export default function AdminPage() {
                 });
                 if (res.ok) {
                     setEvents(parsedEvents);
+                    importSuccessful = true;
+                } else {
+                    const error = await res.json();
+                    throw new Error(error.details || error.error || "Failed to save events");
                 }
             }
 
@@ -100,13 +106,21 @@ export default function AdminPage() {
                 });
                 if (res.ok) {
                     setGlobalStyles(parsedStyles);
+                    importSuccessful = true;
+                } else {
+                    const error = await res.json();
+                    throw new Error(error.details || error.error || "Failed to save styles");
                 }
             }
 
-            alert("Data imported successfully!");
+            if (importSuccessful) {
+                alert("Data imported successfully!");
+            } else {
+                alert("Import finished but no data was updated because required fields were missing or empty.");
+            }
         } catch (e) {
             console.error("Error importing data", e);
-            alert("Failed to import data. Check console for details.");
+            alert(`Failed to import data: ${e.message}`);
         } finally {
             setIsLoading(false);
         }
