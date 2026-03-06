@@ -39,32 +39,40 @@ export default function EventView() {
     const handlePrint = () => {
         setIsPrinting(true);
 
-        // Wait for all images to load
-        const allImages = document.querySelectorAll('img');
-        const totalImages = allImages.length;
-        let loadedImages = 0;
+        // Give a small delay for any state updates to settle before checking images
+        setTimeout(() => {
+            const allImages = document.querySelectorAll('img');
+            const totalImages = allImages.length;
 
-        const checkImages = () => {
-            loadedImages = 0;
-            allImages.forEach(img => {
-                if (img.complete) loadedImages++;
-            });
+            const triggerPrint = () => {
+                // Ensure browser has a moment to render the A4 pages before printing
+                setTimeout(() => {
+                    window.print();
+                    // Keep isPrinting true for a moment longer to ensure the print dialog has been captured/initialized
+                    setTimeout(() => setIsPrinting(false), 1000);
+                }, 500);
+            };
 
-            if (loadedImages === totalImages) {
-                setIsPrinting(false);
-                window.print();
+            const checkImages = () => {
+                let loadedImages = 0;
+                allImages.forEach(img => {
+                    if (img.complete && img.naturalHeight !== 0) loadedImages++;
+                });
+
+                if (loadedImages === totalImages) {
+                    triggerPrint();
+                } else {
+                    // Check again in 200ms
+                    setTimeout(checkImages, 200);
+                }
+            };
+
+            if (totalImages === 0) {
+                triggerPrint();
             } else {
-                // Check again in 200ms
-                setTimeout(checkImages, 200);
+                checkImages();
             }
-        };
-
-        if (totalImages === 0) {
-            setIsPrinting(false);
-            window.print();
-        } else {
-            checkImages();
-        }
+        }, 100);
     };
 
     if (isLoading) {
