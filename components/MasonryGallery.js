@@ -8,13 +8,12 @@ const MasonryGallery = ({ images = [] }) => {
     const normalizeUrl = (url) => {
         if (!url) return "";
         // Handle Google Drive URLs
-        if (url.includes("drive.google.com")) {
+        if (url.includes("drive.google.com") || url.includes("docs.google.com")) {
             const regex = /(?:id=|\/d\/|folders\/)([\w-]+)/;
             const match = url.match(regex);
             if (match && match[1]) {
-                // Use a more direct Google Docs preview link which is often more CORS-friendly
-                // and reliably displays the image without sharing UI overlays.
-                return `https://docs.google.com/uc?export=view&id=${match[1]}`;
+                // Using the thumbnail service is often more reliable for high-quality embedding
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`;
             }
         }
         return url;
