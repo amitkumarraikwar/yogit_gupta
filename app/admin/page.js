@@ -63,6 +63,30 @@ export default function AdminPage() {
         }
     };
 
+    // Save global styles AND reset all events to use global (clear per-event overrides)
+    const applyGlobalStylesToAll = async (newStyles) => {
+        setGlobalStyles(newStyles);
+        try {
+            // 1. Save the global config
+            await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStyles),
+            });
+
+            // 2. Clear per-event styles so all events inherit from global
+            const resetEvents = events.map(ev => ({ ...ev, styles: {} }));
+            setEvents(resetEvents);
+            await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(resetEvents),
+            });
+        } catch (e) {
+            console.error("Error applying global styles to all events", e);
+        }
+    };
+
     const handleImportLocalStorage = async () => {
         const savedEvents = localStorage.getItem("eventData");
         const savedStyles = localStorage.getItem("globalStyles");
@@ -144,7 +168,7 @@ export default function AdminPage() {
             heading: "",
             description: "",
             images: [""],
-            styles: { ...globalStyles } // Inherit global styles by default
+            styles: {} // Empty = inherit from Global Design Settings
         });
     };
 
@@ -230,6 +254,7 @@ export default function AdminPage() {
                     <GlobalSettings
                         styles={globalStyles}
                         onUpdate={saveGlobalStyles}
+                        onApplyToAll={applyGlobalStylesToAll}
                     />
                 )}
 

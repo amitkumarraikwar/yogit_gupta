@@ -361,6 +361,22 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                                         </div>
                                     </div>
                                 </section>
+
+                                {/* Reset to Global Design */}
+                                <div className="border border-dashed border-gray-200 rounded-3xl p-6 text-center">
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                                        Individual Overrides Active
+                                    </p>
+                                    <p className="text-xs text-gray-400 mb-4">
+                                        This event has custom styling. Click below to discard overrides and use the Global Design Settings.
+                                    </p>
+                                    <button
+                                        onClick={() => onUpdate({ ...event, styles: {} })}
+                                        className="px-6 py-3 bg-gray-50 text-gray-700 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all border border-gray-100"
+                                    >
+                                        ↩ Reset to Global Design
+                                    </button>
+                                </div>
                             </>
                         )}
 

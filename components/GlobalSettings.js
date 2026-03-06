@@ -2,12 +2,24 @@
 
 import React from "react";
 
-const GlobalSettings = ({ styles, onUpdate }) => {
+const GlobalSettings = ({ styles, onUpdate, onApplyToAll }) => {
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [saved, setSaved] = React.useState(false);
+
     const updateStyle = (key, value) => {
         onUpdate({
             ...styles,
             [key]: value
         });
+    };
+
+    const handleApplyToAll = async () => {
+        setIsSaving(true);
+        setSaved(false);
+        await onApplyToAll(styles);
+        setIsSaving(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
     };
 
     const fonts = [
@@ -188,6 +200,42 @@ const GlobalSettings = ({ styles, onUpdate }) => {
                 </div>
 
                 <div className="h-20" />
+
+                {/* Save & Apply CTA */}
+                <div className="sticky bottom-0 pt-6 pb-8 bg-gradient-to-t from-[#fcfcfc] to-transparent">
+                    <button
+                        onClick={handleApplyToAll}
+                        disabled={isSaving}
+                        className="w-full py-5 rounded-[2rem] bg-black text-white font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-wait flex items-center justify-center gap-3"
+                    >
+                        {isSaving ? (
+                            <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Applying to All Events...
+                            </>
+                        ) : saved ? (
+                            <>
+                                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Design Applied to All Events!
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                                Save & Apply to All Events
+                            </>
+                        )}
+                    </button>
+                    <p className="text-center text-[10px] text-gray-400 mt-3 font-medium tracking-wide">
+                        This will override any individual event styling and apply the global theme
+                    </p>
+                </div>
             </div>
         </div>
     );
