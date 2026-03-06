@@ -56,10 +56,9 @@
     margin: 0 !important;
     box-shadow: none !important;
     width: 210mm;
-    height: 297mm;
+    /* Height removed to allow content to flow across pages */
     min-height: 297mm;
-    max-height: 297mm;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     page-break-after: always;
     break-after: page;

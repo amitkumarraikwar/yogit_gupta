@@ -49,9 +49,9 @@ const EventPage = ({ data }) => {
             </section>
 
             {/* Footer (Optional, professional touch) */}
-            <footer className="mt-auto pt-10 text-center text-gray-400 text-sm border-t border-gray-50 flex justify-between uppercase tracking-widest no-print">
-                <span>Event Portfolio</span>
-                <span>Professional Edition</span>
+            <footer className="mt-auto pt-10 text-center text-gray-400 text-sm border-t border-gray-50 flex justify-between uppercase tracking-widest">
+                <span>+91 9009407865</span>
+                <span>https://yogit-gupta.vercel.app</span>
             </footer>
         </div>
     );
