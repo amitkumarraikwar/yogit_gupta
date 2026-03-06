@@ -22,21 +22,28 @@
 /* A4 Document Specifications */
 .a4-container {
   width: 210mm;
-  max-width: 100%;
   min-height: 297mm;
-  padding: 10mm;
-  /* Reduced padding for mobile by default */
-  margin: 1rem auto;
+  padding: 20mm;
+  margin: 0 auto;
   background: white;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
-@media (min-width: 768px) {
+/* Page break handling for both print and PDF libraries */
+.a4-container {
+  page-break-after: always;
+  break-after: page;
+}
+
+@media screen {
   .a4-container {
-    padding: 20mm;
     margin: 2rem auto;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -46,33 +53,16 @@
     margin: 0;
   }
 
-  html,
   body {
     background: white !important;
-    width: 210mm;
-    height: auto;
     margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
   .a4-container {
     margin: 0 !important;
     box-shadow: none !important;
-    width: 210mm;
-    min-height: 297mm;
-    overflow: visible;
-    position: relative;
-    page-break-after: always;
-    break-after: page;
-    /* Removed white background override to preserve custom styling */
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Hide UI elements during print */
   .no-print {
     display: none !important;
   }

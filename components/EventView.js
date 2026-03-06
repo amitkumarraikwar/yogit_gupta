@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import EventPage from "@/components/EventPage";
 import { generateEventDocx } from "@/lib/docxUtils";
+import { generatePDF } from "@/lib/pdfUtils";
 
 export default function EventView() {
     const [events, setEvents] = useState([]);
@@ -144,6 +145,15 @@ export default function EventView() {
                     Download Doc
                 </button>
                 <button
+                    onClick={() => generatePDF('event-page-container', 'Yogit_Gupta_Events.pdf')}
+                    className="px-6 py-4 bg-white text-emerald-600 rounded-2xl hover:bg-emerald-50 transition-all font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm border border-emerald-100"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    </svg>
+                    Download PDF
+                </button>
+                <button
                     onClick={handlePrint}
                     disabled={isPrinting}
                     className="px-8 py-4 bg-black text-white rounded-2xl hover:bg-gray-800 transition-all font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
@@ -168,7 +178,7 @@ export default function EventView() {
             </div>
 
             {/* Render All Event Pages */}
-            <div className="space-y-0 flex flex-col items-center">
+            <div id="event-page-container" className="space-y-0 flex flex-col items-center bg-white">
                 {events.map((event, index) => (
                     <EventPage
                         key={index}
