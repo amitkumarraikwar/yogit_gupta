@@ -12,9 +12,9 @@ const MasonryGallery = ({ images = [] }) => {
             const regex = /(?:id=|\/d\/|folders\/)([\w-]+)/;
             const match = url.match(regex);
             if (match && match[1]) {
-                // Use Google Drive thumbnail service for reliable high-quality embedding
-                // sz=w1200 specifies a 1200px wide version, which is usually plenty for A4
-                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`;
+                // Use a more direct Google Docs preview link which is often more CORS-friendly
+                // and reliably displays the image without sharing UI overlays.
+                return `https://docs.google.com/uc?export=view&id=${match[1]}`;
             }
         }
         return url;
