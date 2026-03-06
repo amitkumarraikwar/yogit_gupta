@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-const EventList = ({ events, onEdit, onAdd, onDelete }) => {
+const EventList = ({ events, onEdit, onAdd, onDelete, onImport }) => {
     const [searchTerm, setSearchTerm] = useState("");
 
     const filteredEvents = events.filter(e =>
@@ -18,6 +18,15 @@ const EventList = ({ events, onEdit, onAdd, onDelete }) => {
                         <h2 className="text-gray-400 text-xs font-bold tracking-[0.2em] mb-1">PRODUCTS</h2>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 md:gap-4 w-full md:w-auto">
+                        <button
+                            onClick={onImport}
+                            className="flex-1 md:flex-none bg-white border border-gray-100 text-gray-500 px-4 md:px-6 py-3 rounded-2xl font-bold text-[10px] md:text-xs shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wider group"
+                        >
+                            <svg className="w-3 md:w-4 h-3 md:h-4 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Import LocalStorage
+                        </button>
                         <a
                             href="/"
                             target="_blank"

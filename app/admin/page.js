@@ -62,6 +62,56 @@ export default function AdminPage() {
         }
     };
 
+    const handleImportLocalStorage = async () => {
+        const savedEvents = localStorage.getItem("eventData");
+        const savedStyles = localStorage.getItem("globalStyles");
+
+        if (!savedEvents && !savedStyles) {
+            alert("No data found in LocalStorage to import.");
+            return;
+        }
+
+        if (!confirm("This will import data from your browser's LocalStorage into the database. Existing database data will be overwritten. Proceed?")) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // Import Events
+            if (savedEvents) {
+                const parsedEvents = JSON.parse(savedEvents);
+                const res = await fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsedEvents),
+                });
+                if (res.ok) {
+                    setEvents(parsedEvents);
+                }
+            }
+
+            // Import Global Styles
+            if (savedStyles) {
+                const parsedStyles = JSON.parse(savedStyles);
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsedStyles),
+                });
+                if (res.ok) {
+                    setGlobalStyles(parsedStyles);
+                }
+            }
+
+            alert("Data imported successfully!");
+        } catch (e) {
+            console.error("Error importing data", e);
+            alert("Failed to import data. Check console for details.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const normalizeUrl = (url) => {
         if (!url) return "";
         if (url.includes("drive.google.com")) {
@@ -158,6 +208,7 @@ export default function AdminPage() {
                         onEdit={handleEditEvent}
                         onAdd={handleAddEvent}
                         onDelete={handleDeleteEvent}
+                        onImport={handleImportLocalStorage}
                     />
                 )}
 
