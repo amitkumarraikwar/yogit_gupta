@@ -30,8 +30,6 @@ const MasonryGallery = ({ images = [] }) => {
                             alt={`Event image ${index + 1}`}
                             className="w-full h-auto block"
                             loading="eager"
-                            crossOrigin="anonymous"
-                            referrerPolicy="no-referrer"
                             onError={(e) => {
                                 const parent = e.target.parentElement;
                                 if (!parent) return;

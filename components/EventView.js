@@ -39,39 +39,57 @@ export default function EventView() {
     const handlePrint = () => {
         setIsPrinting(true);
 
-        // Give a small delay for any state updates to settle before checking images
+        const handleAfterPrint = () => {
+            setIsPrinting(false);
+            window.removeEventListener('afterprint', handleAfterPrint);
+        };
+        window.addEventListener('afterprint', handleAfterPrint);
+
+        // Give state a moment to settle
         setTimeout(() => {
             const allImages = document.querySelectorAll('img');
             const totalImages = allImages.length;
 
             const triggerPrint = () => {
-                // Ensure browser has a moment to render the A4 pages before printing
                 setTimeout(() => {
                     window.print();
-                    // Keep isPrinting true for a moment longer to ensure the print dialog has been captured/initialized
-                    setTimeout(() => setIsPrinting(false), 1000);
+                    // Fallback in case afterprint doesn't fire nicely in some browsers
+                    setTimeout(() => setIsPrinting(false), 2000);
                 }, 500);
             };
 
             const checkImages = () => {
-                let loadedImages = 0;
+                let loadedOrFailedCount = 0;
+                let imagesCheckedCount = 0;
+
                 allImages.forEach(img => {
-                    if (img.complete && img.naturalHeight !== 0) loadedImages++;
+                    imagesCheckedCount++;
+                    if (img.complete) {
+                        loadedOrFailedCount++;
+                    } else {
+                        // Hook into future load/error events if not already complete
+                        const increment = () => {
+                            loadedOrFailedCount++;
+                            img.removeEventListener('load', increment);
+                            img.removeEventListener('error', increment);
+                        };
+                        img.addEventListener('load', increment);
+                        img.addEventListener('error', increment);
+                    }
                 });
 
-                if (loadedImages === totalImages) {
-                    triggerPrint();
-                } else {
-                    // Check again in 200ms
-                    setTimeout(checkImages, 200);
-                }
+                const waitAndPrint = () => {
+                    if (loadedOrFailedCount >= totalImages || imagesCheckedCount === 0) {
+                        triggerPrint();
+                    } else {
+                        setTimeout(waitAndPrint, 200);
+                    }
+                };
+
+                waitAndPrint();
             };
 
-            if (totalImages === 0) {
-                triggerPrint();
-            } else {
-                checkImages();
-            }
+            checkImages();
         }, 100);
     };
 
