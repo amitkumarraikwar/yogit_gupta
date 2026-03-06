@@ -41,4 +41,9 @@ firebase-debug.log*
 
 # typescript
 *.tsbuildinfo
+# next-env
 next-env.d.ts
+
+# generated pdfs
+public/*.pdf
+*.pdf

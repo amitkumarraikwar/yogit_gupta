@@ -38,9 +38,12 @@ export default function EventView() {
 
     const handlePrint = () => {
         setIsPrinting(true);
+        const originalTitle = document.title;
+        document.title = "Event Summary - Yogit Gupta";
 
         const handleAfterPrint = () => {
             setIsPrinting(false);
+            document.title = originalTitle;
             window.removeEventListener('afterprint', handleAfterPrint);
         };
         window.addEventListener('afterprint', handleAfterPrint);
@@ -51,46 +54,37 @@ export default function EventView() {
             const totalImages = allImages.length;
 
             const triggerPrint = () => {
+                // Buffer to allow final rendering and layout stabilization
                 setTimeout(() => {
                     window.print();
-                    // Fallback in case afterprint doesn't fire nicely in some browsers
-                    setTimeout(() => setIsPrinting(false), 2000);
-                }, 500);
+                    // No fallback setIsPrinting(false) here to avoid interrupting the print engine
+                }, 800);
             };
 
             const checkImages = () => {
-                let loadedOrFailedCount = 0;
-                let imagesCheckedCount = 0;
+                let statusCount = 0;
+                if (totalImages === 0) return triggerPrint();
 
                 allImages.forEach(img => {
-                    imagesCheckedCount++;
                     if (img.complete) {
-                        loadedOrFailedCount++;
+                        statusCount++;
                     } else {
-                        // Hook into future load/error events if not already complete
                         const increment = () => {
-                            loadedOrFailedCount++;
+                            statusCount++;
                             img.removeEventListener('load', increment);
                             img.removeEventListener('error', increment);
+                            if (statusCount >= totalImages) triggerPrint();
                         };
                         img.addEventListener('load', increment);
                         img.addEventListener('error', increment);
                     }
                 });
 
-                const waitAndPrint = () => {
-                    if (loadedOrFailedCount >= totalImages || imagesCheckedCount === 0) {
-                        triggerPrint();
-                    } else {
-                        setTimeout(waitAndPrint, 200);
-                    }
-                };
-
-                waitAndPrint();
+                if (statusCount >= totalImages) triggerPrint();
             };
 
             checkImages();
-        }, 100);
+        }, 150);
     };
 
     if (isLoading) {
