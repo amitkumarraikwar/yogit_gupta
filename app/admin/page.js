@@ -275,6 +275,21 @@ export default function AdminPage() {
         setCurrentEvent({ ...events[index] });
     };
 
+    const handleReorder = async (reorderedEvents) => {
+        // Optimistically update state immediately for smooth UI
+        setEvents(reorderedEvents);
+        // Persist new order to database silently
+        try {
+            await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reorderedEvents),
+            });
+        } catch (e) {
+            console.error("Error saving reordered events to MongoDB", e);
+        }
+    };
+
     const handleDeleteEvent = async (index) => {
         if (confirm("Are you sure you want to delete this event?")) {
             const newEvents = events.filter((_, i) => i !== index);
@@ -357,6 +372,7 @@ export default function AdminPage() {
                         onRestoreFile={handleRestoreFile}
                         onPasteRestore={() => setShowPasteModal(true)}
                         onSaveAll={handleSaveAll}
+                        onReorder={handleReorder}
                     />
                 )}
 
