@@ -7,7 +7,16 @@ import { generatePDF } from "@/lib/pdfUtils";
 
 export default function EventView() {
     const [events, setEvents] = useState([]);
-    const [globalStyles, setGlobalStyles] = useState(null);
+    const [globalStyles, setGlobalStyles] = useState({
+        pageBackground: "#ffffff",
+        headingFont: "Playfair Display, serif",
+        headingSize: "4rem",
+        headingColor: "#111827",
+        bodyFont: "Poppins, sans-serif",
+        bodySize: "1.125rem",
+        bodyColor: "#1f2937",
+        imageColumns: 3,
+    });
     const [isPrinting, setIsPrinting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -184,7 +193,7 @@ export default function EventView() {
                         key={index}
                         data={{
                             ...event,
-                            styles: { ...globalStyles, ...event.styles } // Apply global default, then event override
+                            styles: { ...globalStyles, ...(event.styles || {}) } // Apply global default, then event override
                         }}
                     />
                 ))}

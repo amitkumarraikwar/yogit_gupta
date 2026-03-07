@@ -2,8 +2,18 @@
 
 import React, { useState } from "react";
 
-const EventList = ({ events, onEdit, onAdd, onDelete, onImport }) => {
+const EventList = ({ events, onEdit, onAdd, onDelete, onImport, onRestoreFile, onPasteRestore, onSaveAll }) => {
     const [searchTerm, setSearchTerm] = useState("");
+    const fileInputRef = React.useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            onRestoreFile(file);
+        }
+        // Reset input so the same file can be uploaded again if needed
+        e.target.value = '';
+    };
 
     const filteredEvents = events.filter(e =>
         e.heading.toLowerCase().includes(searchTerm.toLowerCase())
@@ -18,6 +28,40 @@ const EventList = ({ events, onEdit, onAdd, onDelete, onImport }) => {
                         <h2 className="text-gray-400 text-xs font-bold tracking-[0.2em] mb-1">PRODUCTS</h2>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 md:gap-4 w-full md:w-auto">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept=".json,.docx,.txt"
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex-1 md:flex-none bg-blue-50 border border-blue-100 text-blue-600 px-4 md:px-6 py-3 rounded-2xl font-bold text-[10px] md:text-xs shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wider group"
+                        >
+                            <svg className="w-3 md:w-4 h-3 md:h-4 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Restore/Backup
+                        </button>
+                        <button
+                            onClick={onPasteRestore}
+                            className="flex-1 md:flex-none bg-blue-600 border border-blue-500 text-white px-4 md:px-6 py-3 rounded-2xl font-bold text-[10px] md:text-xs shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 uppercase tracking-wider group"
+                        >
+                            <svg className="w-3 md:w-4 h-3 md:h-4 text-white group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            Paste Recovery
+                        </button>
+                        <button
+                            onClick={onSaveAll}
+                            className="flex-1 md:flex-none bg-emerald-600 border border-emerald-500 text-white px-4 md:px-6 py-3 rounded-2xl font-bold text-[10px] md:text-xs shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 uppercase tracking-wider group"
+                        >
+                            <svg className="w-3 md:w-4 h-3 md:h-4 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save All Changes
+                        </button>
                         <button
                             onClick={onImport}
                             className="flex-1 md:flex-none bg-white border border-gray-100 text-gray-500 px-4 md:px-6 py-3 rounded-2xl font-bold text-[10px] md:text-xs shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wider group"

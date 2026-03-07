@@ -15,7 +15,7 @@ const EventPage = ({ data }) => {
         >
             {/* Top Section: Masonry Gallery */}
             <section className="mb-12">
-                <MasonryGallery images={images} />
+                <MasonryGallery images={images} columns={s?.imageColumns} />
             </section>
 
             {/* Middle Section: Event Heading */}

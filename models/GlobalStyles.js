@@ -8,6 +8,7 @@ const GlobalStylesSchema = new mongoose.Schema({
     bodyFont: String,
     bodySize: String,
     bodyColor: String,
+    imageColumns: Number,
 }, {
     timestamps: true,
 });

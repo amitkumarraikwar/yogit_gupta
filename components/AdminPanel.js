@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { extractFolderId } from "@/lib/googleDriveUtils";
+import { extractFolderId, normalizeUrl } from "@/lib/googleDriveUtils";
+import GalleryDesigner from "./GalleryDesigner";
 
 const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
     const [activeTab, setActiveTab] = useState("content");
     const [driveUrl, setDriveUrl] = useState("");
     const [isFetchingDrive, setIsFetchingDrive] = useState(false);
     const [driveError, setDriveError] = useState("");
+    const [designerOpen, setDesignerOpen] = useState(false);
 
     const updateField = (field, value) => {
         onUpdate({ ...event, [field]: value });
@@ -25,7 +27,11 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
 
     const handleImageChange = (index, value) => {
         const newImages = [...event.images];
-        newImages[index] = value;
+        if (typeof newImages[index] === 'object' && newImages[index] !== null) {
+            newImages[index] = { ...newImages[index], url: value };
+        } else {
+            newImages[index] = value;
+        }
         updateField("images", newImages);
     };
 
@@ -186,6 +192,17 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                                             <span className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-all">+</span>
                                             Add Image
                                         </button>
+                                        <button
+                                            onClick={() => setDesignerOpen(true)}
+                                            className="ml-4 text-[10px] font-black text-purple-600 hover:text-purple-700 uppercase tracking-widest flex items-center gap-1 group"
+                                        >
+                                            <span className="w-5 h-5 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-all">
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                                </svg>
+                                            </span>
+                                            Edit Layout
+                                        </button>
                                     </div>
 
                                     {/* Google Drive Import Section */}
@@ -218,34 +235,37 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        {event.images.map((img, idx) => (
-                                            <div key={idx} className="flex gap-3 group">
-                                                <div className="relative flex-1">
-                                                    <input
-                                                        type="text"
-                                                        value={img}
-                                                        onChange={(e) => handleImageChange(idx, e.target.value)}
-                                                        placeholder="Pinterest image URL"
-                                                        className="w-full px-6 py-4 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-purple-100 transition-all outline-none font-medium placeholder:text-gray-300 pr-12 text-sm"
-                                                    />
-                                                    {img && (
-                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-white">
-                                                            <img src={img} alt="Preview" className="w-full h-full object-cover" />
-                                                        </div>
+                                        {event.images.map((img, idx) => {
+                                            const imageUrl = typeof img === 'object' ? (img?.url || "") : img;
+                                            return (
+                                                <div key={idx} className="flex gap-3 group">
+                                                    <div className="relative flex-1">
+                                                        <input
+                                                            type="text"
+                                                            value={imageUrl}
+                                                            onChange={(e) => handleImageChange(idx, e.target.value)}
+                                                            placeholder="Pinterest image URL"
+                                                            className="w-full px-6 py-4 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-purple-100 transition-all outline-none font-medium placeholder:text-gray-300 pr-12 text-sm"
+                                                        />
+                                                        {imageUrl && (
+                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-white">
+                                                                <img src={normalizeUrl(imageUrl)} alt="Preview" className="w-full h-full object-cover" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {event.images.length > 1 && (
+                                                        <button
+                                                            onClick={() => removeImageField(idx)}
+                                                            className="bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 w-14 rounded-2xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
                                                     )}
                                                 </div>
-                                                {event.images.length > 1 && (
-                                                    <button
-                                                        onClick={() => removeImageField(idx)}
-                                                        className="bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 w-14 rounded-2xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             </>
@@ -270,6 +290,22 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                                                 onChange={(e) => updateStyle("pageBackground", e.target.value)}
                                                 className="w-12 h-12 rounded-xl cursor-pointer border-none bg-transparent"
                                             />
+                                        </div>
+
+                                        <div className="bg-gray-50 p-6 rounded-3xl space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-gray-900 font-bold text-sm">Grid Columns</p>
+                                                <span className="text-[10px] font-black text-gray-900 bg-white px-2 py-1 rounded-md border border-gray-100">
+                                                    {event.styles?.imageColumns || "Default"}
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range" min="1" max="5" step="1"
+                                                value={event.styles?.imageColumns || 3}
+                                                onChange={(e) => updateStyle("imageColumns", parseInt(e.target.value))}
+                                                className="w-full h-1.5 bg-white rounded-lg appearance-none cursor-pointer accent-black"
+                                            />
+                                            <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Overrides global setting</p>
                                         </div>
                                     </div>
 
@@ -384,6 +420,14 @@ const AdminPanel = ({ event, onUpdate, onSave, onCancel }) => {
                     </div>
                 </div>
             </div>
+            {designerOpen && (
+                <GalleryDesigner
+                    images={event.images}
+                    onUpdate={(newImages) => updateField("images", newImages)}
+                    onSave={() => setDesignerOpen(false)}
+                    onCancel={() => setDesignerOpen(false)}
+                />
+            )}
         </div>
     );
 };

@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import EventList from "@/components/EventList";
 import AdminPanel from "@/components/AdminPanel";
 import GlobalSettings from "@/components/GlobalSettings";
+import { parseTextToEvents, validateEventData } from "@/lib/recoveryUtils";
 
 export default function AdminPage() {
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -20,7 +21,10 @@ export default function AdminPage() {
         bodyFont: "Poppins, sans-serif",
         bodySize: "1.125rem",
         bodyColor: "#1f2937",
+        imageColumns: 3,
     });
+    const [showPasteModal, setShowPasteModal] = useState(false);
+    const [pasteText, setPasteText] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -84,6 +88,100 @@ export default function AdminPage() {
             });
         } catch (e) {
             console.error("Error applying global styles to all events", e);
+        }
+    };
+
+    const handlePasteRestore = () => {
+        if (!pasteText.trim()) {
+            alert("Please paste some text from your document.");
+            return;
+        }
+
+        const recoveredEvents = parseTextToEvents(pasteText);
+        if (recoveredEvents.length === 0) {
+            alert("Could not identify any events in the pasted text. Please make sure you copied the content correctly.");
+            return;
+        }
+
+        if (confirm(`Identify ${recoveredEvents.length} events. Restoring them will overwrite the current list (but won't save until you click 'Save & Apply'). Proceed?`)) {
+            setEvents(recoveredEvents);
+            setShowPasteModal(false);
+            setPasteText("");
+            alert("Data restored to dashboard! Review the events and click 'Save & Apply' to persist to database.");
+        }
+    };
+
+    const handleSaveAll = async () => {
+        if (!confirm("This will overwrite all events in the database with the current list shown in your dashboard. Proceed?")) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(events),
+            });
+            if (res.ok) {
+                alert("All events saved successfully to database!");
+            } else {
+                const error = await res.json();
+                throw new Error(error.details || error.error || "Failed to save events");
+            }
+        } catch (e) {
+            console.error("Error saving all events", e);
+            alert(`Failed to save events: ${e.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRestoreFile = async (file) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const content = e.target.result;
+            let recoveredEvents = [];
+
+            try {
+                if (file.name.endsWith('.json')) {
+                    const data = JSON.parse(content);
+                    if (validateEventData(data)) {
+                        recoveredEvents = data;
+                    } else if (data.events && validateEventData(data.events)) {
+                        recoveredEvents = data.events;
+                    } else {
+                        throw new Error("Invalid JSON format for events.");
+                    }
+                } else {
+                    // Try parsing as text (DOCX/TXT)
+                    recoveredEvents = parseTextToEvents(content);
+                }
+
+                if (recoveredEvents.length === 0) {
+                    alert("Could not find any event data in this file. Please check the file content.");
+                    return;
+                }
+
+                if (confirm(`Found ${recoveredEvents.length} events. Do you want to restore them? This will overwrite your current list in the dashboard (but won't save to database until you click 'Save & Apply').`)) {
+                    setEvents(recoveredEvents);
+                    alert("Data restored to dashboard. Please review and click 'Save & Apply to All Events' or add/edit them as needed.");
+                }
+
+            } catch (err) {
+                console.error("Restoration error:", err);
+                alert("Failed to restore data: " + err.message);
+            }
+        };
+
+        if (file.name.endsWith('.json') || file.name.endsWith('.txt')) {
+            reader.readAsText(file);
+        } else {
+            // For .docx, we really need a parser like mammoth. 
+            // For now, let's inform the user to copy-paste text or provide a JSON.
+            alert("For .docx files, please copy the text from the document and paste it into the 'Paste Recovery' tool (Coming soon) or provide a .json backup. Reading .docx directly is currently limited.");
+            // Actually, let's try reading as text anyway, sometimes it might have some strings.
+            reader.readAsText(file);
         }
     };
 
@@ -151,9 +249,9 @@ export default function AdminPage() {
     };
 
     const normalizeUrl = (url) => {
-        if (!url) return "";
+        if (!url || typeof url !== "string") return url;
         if (url.includes("drive.google.com")) {
-            const regex = /(?:id=|\/d\/|folders\/)([\w-]+)/;
+            const regex = /(?:id=|\/d\/|folders\/)([a-zA-Z0-9-_]+)/;
             const match = url.match(regex);
             if (match && match[1]) {
                 return `https://lh3.googleusercontent.com/d/${match[1]}`;
@@ -194,14 +292,23 @@ export default function AdminPage() {
     };
 
     const handleSaveEvent = async () => {
-        if (!currentEvent.heading || !currentEvent.description || currentEvent.images.some(img => !img)) {
+        if (!currentEvent.heading || !currentEvent.description ||
+            currentEvent.images.some(img => {
+                const url = typeof img === 'object' ? img.url : img;
+                return !url;
+            })) {
             alert("Please fill in all fields.");
             return;
         }
 
         const normalizedEvent = {
             ...currentEvent,
-            images: currentEvent.images.map(img => normalizeUrl(img))
+            images: currentEvent.images.map(img => {
+                if (typeof img === 'object' && img !== null) {
+                    return { ...img, url: normalizeUrl(img.url) };
+                }
+                return normalizeUrl(img);
+            })
         };
 
         let newEvents = [...events];
@@ -247,6 +354,9 @@ export default function AdminPage() {
                         onAdd={handleAddEvent}
                         onDelete={handleDeleteEvent}
                         onImport={handleImportLocalStorage}
+                        onRestoreFile={handleRestoreFile}
+                        onPasteRestore={() => setShowPasteModal(true)}
+                        onSaveAll={handleSaveAll}
                     />
                 )}
 
@@ -275,6 +385,68 @@ export default function AdminPage() {
                     onSave={handleSaveEvent}
                     onCancel={() => setEditingIndex(null)}
                 />
+            )}
+
+            {/* Paste Recovery Modal */}
+            {showPasteModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowPasteModal(false)} />
+                    <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-8 md:p-12">
+                            <div className="flex justify-between items-start mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">PASTE RECOVERY</h2>
+                                    <p className="text-gray-400 text-xs font-bold tracking-widest uppercase">Restore from DOCX or Website Text</p>
+                                </div>
+                                <button onClick={() => setShowPasteModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100/50">
+                                    <h4 className="text-blue-900 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Instructions
+                                    </h4>
+                                    <p className="text-blue-700/80 text-[11px] font-medium leading-relaxed">
+                                        Open your ".docx" file or any saved text, copy the entire content, and paste it here.
+                                        We will automatically detect event titles, descriptions, and images.
+                                    </p>
+                                </div>
+
+                                <textarea
+                                    value={pasteText}
+                                    onChange={(e) => setPasteText(e.target.value)}
+                                    placeholder="Paste your document text here..."
+                                    className="w-full h-64 bg-gray-50 border border-gray-100 rounded-2xl p-6 outline-none focus:ring-2 ring-blue-500/20 focus:bg-white transition-all text-sm font-medium placeholder:text-gray-300"
+                                />
+
+                                <div className="flex gap-4 pt-2">
+                                    <button
+                                        onClick={() => setShowPasteModal(false)}
+                                        className="flex-1 px-8 py-4 bg-gray-50 text-gray-500 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handlePasteRestore}
+                                        className="flex-[2] px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Identify & Restore Events
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </main>
     );

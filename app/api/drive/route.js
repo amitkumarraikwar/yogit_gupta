@@ -54,7 +54,7 @@ export async function GET(request) {
             id: file.id,
             name: file.name,
             mimeType: file.mimeType,
-            src: `https://drive.google.com/uc?export=view&id=${file.id}`,
+            src: `https://lh3.googleusercontent.com/d/${file.id}`,
             thumbnail: file.thumbnailLink,
             link: file.webViewLink,
         }));

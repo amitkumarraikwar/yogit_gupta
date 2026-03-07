@@ -64,6 +64,30 @@ const GlobalSettings = ({ styles, onUpdate, onApplyToAll }) => {
                                 />
                             </div>
                         </div>
+
+                        {/* Section 1.5: Gallery Layout */}
+                        <div className="flex items-center gap-3 pt-4">
+                            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm underline decoration-2 underline-offset-4">01.5</div>
+                            <h3 className="font-bold text-gray-900 uppercase tracking-widest text-xs">Gallery Layout</h3>
+                        </div>
+
+                        <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+                            <div className="space-y-4">
+                                <label className="block">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Grid Columns</span>
+                                        <span className="text-[10px] font-black text-gray-900 bg-gray-100 px-2 py-1 rounded-md">{styles.imageColumns || 3} Columns</span>
+                                    </div>
+                                    <input
+                                        type="range" min="1" max="5" step="1"
+                                        value={styles.imageColumns || 3}
+                                        onChange={(e) => updateStyle("imageColumns", parseInt(e.target.value))}
+                                        className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-black"
+                                    />
+                                </label>
+                                <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Affects image size by adjusting column count</p>
+                            </div>
+                        </div>
                     </section>
 
                     {/* Section 2: Heading Typography */}

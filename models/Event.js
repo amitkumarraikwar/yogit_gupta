@@ -10,7 +10,7 @@ const EventSchema = new mongoose.Schema({
         default: '',
     },
     images: {
-        type: [String],
+        type: [mongoose.Schema.Types.Mixed],
         default: [],
     },
     styles: {
@@ -21,6 +21,7 @@ const EventSchema = new mongoose.Schema({
         bodyFont: String,
         bodySize: String,
         bodyColor: String,
+        imageColumns: Number,
     },
     order: {
         type: Number,
