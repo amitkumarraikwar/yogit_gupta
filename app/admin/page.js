@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import EventList from "@/components/EventList";
 import AdminPanel from "@/components/AdminPanel";
 import GlobalSettings from "@/components/GlobalSettings";
+import FrontPageSettings from "@/components/FrontPageSettings";
 import { parseTextToEvents, validateEventData } from "@/lib/recoveryUtils";
 
 export default function AdminPage() {
@@ -25,6 +26,15 @@ export default function AdminPage() {
     });
     const [showPasteModal, setShowPasteModal] = useState(false);
     const [pasteText, setPasteText] = useState("");
+    const [frontPageData, setFrontPageData] = useState({
+        candidateName: "",
+        workContent: "",
+        bgImages: [],
+        instagram: "",
+        facebook: "",
+        whatsapp: "",
+        twitter: "",
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,6 +52,13 @@ export default function AdminPage() {
                 const configData = await configRes.json();
                 if (configData && Object.keys(configData).length > 0) {
                     setGlobalStyles(configData);
+                }
+
+                // Load Front Page Data from MongoDB
+                const frontRes = await fetch('/api/front');
+                const frontData = await frontRes.json();
+                if (frontData && frontData.candidateName !== undefined) {
+                    setFrontPageData(frontData);
                 }
             } catch (e) {
                 console.error("Error loading data from MongoDB", e);
@@ -384,7 +401,14 @@ export default function AdminPage() {
                     />
                 )}
 
-                {activeTab !== "dashboard" && activeTab !== "settings" && (
+                {activeTab === "frontpage" && (
+                    <FrontPageSettings
+                        data={frontPageData}
+                        onUpdate={setFrontPageData}
+                    />
+                )}
+
+                {activeTab !== "dashboard" && activeTab !== "settings" && activeTab !== "frontpage" && (
                     <div className="flex-1 bg-[#fcfcfc] h-full flex items-center justify-center p-20">
                         <div className="text-center">
                             <h2 className="text-2xl font-bold text-gray-300">COMING SOON</h2>
