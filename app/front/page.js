@@ -446,19 +446,50 @@ export default function FrontPage() {
                 .fp-social-label { font-family: 'Poppins', sans-serif; }
 
                 @media print {
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
                     .fp-root {
                         background: #08090d !important;
+                        height: 297mm !important;
+                        max-height: 297mm !important;
+                        overflow: hidden !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
                     .fp-bg {
+                        height: 100% !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
+                    .fp-header {
+                        padding: 20mm 0 10mm !important;
+                    }
+                    .fp-name {
+                        font-size: 3.5rem !important;
+                    }
                     .fp-card {
-                        backdrop-filter: none;
-                        -webkit-backdrop-filter: none;
-                        background: rgba(255,255,255,0.08); /* Fallback for blur */
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                        background: rgba(255,255,255,0.1) !important;
+                        padding: 30px !important;
+                    }
+                    .fp-title {
+                        font-size: 1.8rem !important;
+                    }
+                    .fp-body-text {
+                        font-size: 0.95rem !important;
+                        line-height: 1.6 !important;
+                        gap: 10px !important;
+                    }
+                    .fp-footer {
+                        padding: 10mm 0 20mm !important;
+                        gap: 15px !important;
+                    }
+                    .fp-social-btn {
+                        padding: 8px 16px !important;
+                        font-size: 12px !important;
                     }
                 }
 
