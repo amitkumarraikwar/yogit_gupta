@@ -69,11 +69,22 @@ export default function FrontPage() {
         }, 500);
     };
 
+    const getHandle = (url, type) => {
+        if (!url) return "";
+        if (type === "whatsapp") return url.replace(/\D/g, "");
+        try {
+            const path = new URL(url.startsWith('http') ? url : `https://${url}`).pathname;
+            const parts = path.split('/').filter(p => p);
+            if (parts.length > 0) return `@${parts[parts.length - 1]}`;
+        } catch (e) { }
+        return url;
+    };
+
     const socialLinks = [
-        { key: "instagram", label: "Instagram", Icon: InstagramIcon, color: "#E1306C", href: data.instagram },
-        { key: "facebook", label: "Facebook", Icon: FacebookIcon, color: "#1877F2", href: data.facebook },
-        { key: "whatsapp", label: "WhatsApp", Icon: WhatsAppIcon, color: "#25D366", href: data.whatsapp ? `https://wa.me/${data.whatsapp.replace(/\D/g, "")}` : "" },
-        { key: "twitter", label: "Twitter / X", Icon: TwitterXIcon, color: "#ffffff", href: data.twitter },
+        { key: "instagram", label: getHandle(data.instagram, "instagram"), Icon: InstagramIcon, color: "#E1306C", href: data.instagram },
+        { key: "facebook", label: getHandle(data.facebook, "facebook"), Icon: FacebookIcon, color: "#1877F2", href: data.facebook },
+        { key: "whatsapp", label: getHandle(data.whatsapp, "whatsapp"), Icon: WhatsAppIcon, color: "#25D366", href: data.whatsapp ? `https://wa.me/${data.whatsapp.replace(/\D/g, "")}` : "" },
+        { key: "twitter", label: getHandle(data.twitter, "twitter"), Icon: TwitterXIcon, color: "#ffffff", href: data.twitter },
     ].filter((s) => s.href);
 
     const paragraphs = (data.workContent || "").split("\n").filter((p) => p.trim());
@@ -409,25 +420,29 @@ export default function FrontPage() {
                 .fp-social-btn {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    padding: 12px 22px 12px 18px;
+                    gap: 12px;
+                    padding: 10px 20px;
                     background: rgba(255,255,255,0.05);
                     border: 1px solid rgba(255,255,255,0.1);
-                    border-radius: 100px;
-                    color: var(--social-color, #fff);
+                    border-radius: 14px;
+                    color: #ffffff;
                     text-decoration: none;
-                    font-size: 13px;
-                    font-weight: 600;
+                    font-size: 14px;
+                    font-weight: 500;
                     transition: all 0.25s ease;
                     backdrop-filter: blur(8px);
                 }
                 .fp-social-btn:hover {
-                    background: rgba(255,255,255,0.12);
+                    background: rgba(255,255,255,0.1);
                     border-color: var(--social-color, #fff);
-                    transform: translateY(-3px);
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+                    transform: translateY(-2px);
                 }
-                .fp-social-icon { display: flex; align-items: center; }
+                .fp-social-icon { 
+                    display: flex; 
+                    align-items: center;
+                    color: var(--social-color, #fff);
+                    font-size: 20px;
+                }
                 .fp-social-label { font-family: 'Poppins', sans-serif; }
 
                 @media print {
