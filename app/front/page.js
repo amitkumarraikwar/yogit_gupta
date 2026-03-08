@@ -209,11 +209,11 @@ export default function FrontPage() {
                 .fp-root {
                     position: relative;
                     background: #08090d;
-                    overflow: hidden;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     font-family: 'Poppins', sans-serif;
+                    min-height: 100%;
                 }
                 .fp-bg {
                     position: absolute;
@@ -227,8 +227,7 @@ export default function FrontPage() {
                     auto-rows: 25px;
                     padding: 20px;
                     opacity: 0.30;
-                    height: 100%;
-                    overflow: hidden;
+                    min-height: 100%;
                 }
                 @media (max-width: 600px) {
                     .fp-grid { 
@@ -285,7 +284,7 @@ export default function FrontPage() {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: 72px 0 40px;
+                    padding: 40px 0 30px;
                     text-align: center;
                 }
                 .fp-header-badge {
@@ -301,7 +300,7 @@ export default function FrontPage() {
                 }
                 .fp-name {
                     font-family: 'Playfair Display', serif;
-                    font-size: clamp(2.5rem, 8vw, 5.5rem);
+                    font-size: clamp(2.2rem, 6vw, 4.5rem);
                     font-weight: 900;
                     line-height: 1.05;
                     letter-spacing: -0.02em;
@@ -337,7 +336,7 @@ export default function FrontPage() {
                     -webkit-backdrop-filter: blur(20px);
                     border: 1px solid rgba(255,255,255,0.1);
                     border-radius: 28px;
-                    padding: 48px 48px 52px;
+                    padding: 40px 40px 44px;
                     box-shadow: 0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
                 }
                 @media (max-width: 600px) {
@@ -430,6 +429,23 @@ export default function FrontPage() {
                 }
                 .fp-social-icon { display: flex; align-items: center; }
                 .fp-social-label { font-family: 'Poppins', sans-serif; }
+
+                @media print {
+                    .fp-root {
+                        background: #08090d !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .fp-bg {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .fp-card {
+                        backdrop-filter: none;
+                        -webkit-backdrop-filter: none;
+                        background: rgba(255,255,255,0.08); /* Fallback for blur */
+                    }
+                }
 
                 @keyframes fp-pulse {
                     0%, 100% { opacity: 1; }
