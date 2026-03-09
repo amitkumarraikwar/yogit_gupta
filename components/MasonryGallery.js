@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { normalizeUrl } from "@/lib/googleDriveUtils";
 
-const MasonryGallery = ({ images = [], columns = 3 }) => {
+const MasonryGallery = ({ images = [], columns = 3, isPrinting = false }) => {
     if (!images || images.length === 0) return null;
 
     // Detect if we have structured layout data
@@ -15,7 +15,7 @@ const MasonryGallery = ({ images = [], columns = 3 }) => {
             <div className="grid grid-cols-12 gap-4 auto-rows-[20px] mb-8">
                 {images.map((img, index) => {
                     const data = typeof img === 'string' ? { url: img, cols: 4, rows: 4 } : img;
-                    const normalizedSrc = normalizeUrl(data.url);
+                    const normalizedSrc = normalizeUrl(data.url, isPrinting ? 1200 : null);
 
                     return (
                         <div
@@ -49,7 +49,7 @@ const MasonryGallery = ({ images = [], columns = 3 }) => {
             style={{ columnCount: columnCount }}
         >
             {images.map((url, index) => {
-                const normalizedSrc = normalizeUrl(url);
+                const normalizedSrc = normalizeUrl(url, isPrinting ? 1200 : null);
                 return (
                     <div key={index} className="masonry-item mb-4 break-inside-avoid bg-gray-50 rounded-lg overflow-hidden min-h-[100px] flex flex-col items-center justify-center border border-gray-100 shadow-sm transition-all hover:shadow-md">
                         <img

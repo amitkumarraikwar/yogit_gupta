@@ -3,7 +3,7 @@
 import React from "react";
 import MasonryGallery from "./MasonryGallery";
 
-const EventPage = ({ data }) => {
+const EventPage = ({ data, isPrinting = false }) => {
     if (!data) return null;
 
     const { heading, description, images, styles: s } = data;
@@ -15,7 +15,7 @@ const EventPage = ({ data }) => {
         >
             {/* Top Section: Masonry Gallery */}
             <section className="mb-12">
-                <MasonryGallery images={images} columns={s?.imageColumns} />
+                <MasonryGallery images={images} columns={s?.imageColumns} isPrinting={isPrinting} />
             </section>
 
             {/* Middle Section: Event Heading */}

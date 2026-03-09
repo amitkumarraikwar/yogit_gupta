@@ -142,7 +142,7 @@ export default function FrontPage() {
                                             gridRow: `span ${rows}`
                                         }}
                                     >
-                                        <img src={normalizeUrl(url)} alt="" draggable={false} />
+                                        <img src={normalizeUrl(url, isPrinting ? 1200 : null)} alt="" draggable={false} />
                                     </div>
                                 );
                             })}

@@ -191,6 +191,7 @@ export default function EventView() {
                 {events.map((event, index) => (
                     <EventPage
                         key={index}
+                        isPrinting={isPrinting}
                         data={{
                             ...event,
                             styles: { ...globalStyles, ...(event.styles || {}) } // Apply global default, then event override
