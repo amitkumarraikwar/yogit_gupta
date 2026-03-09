@@ -1,7 +1,5 @@
-import { google } from 'googleapis';
+import { getDriveClient } from '@/lib/server/googleDrive';
 import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -12,28 +10,7 @@ export async function GET(request) {
     }
 
     try {
-        let auth;
-        const keyFile = path.join(process.cwd(), 'service-account.json');
-
-        if (fs.existsSync(keyFile)) {
-            auth = new google.auth.GoogleAuth({
-                keyFile: keyFile,
-                scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-            });
-        }
-        else if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-            auth = new google.auth.GoogleAuth({
-                credentials: {
-                    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-                },
-                scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-            });
-        } else {
-            return new NextResponse('Credentials missing', { status: 500 });
-        }
-
-        const drive = google.drive({ version: 'v3', auth });
+        const drive = await getDriveClient();
 
         // Get the actual file content as a stream directly
         // We'll trust the stream's headers or use a default

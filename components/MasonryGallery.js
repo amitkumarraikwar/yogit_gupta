@@ -73,7 +73,10 @@ const handleImageError = (e) => {
 
     // If the error happened on a direct Google link, try the proxy instead
     if (img.src.includes("googleusercontent.com") && !img.src.includes("/api/image-proxy")) {
-        const imageId = img.src.split('/').pop();
+        // More robust ID extraction that handles =w1200 etc
+        const match = img.src.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        const imageId = match ? match[1] : null;
+
         if (imageId) {
             console.log(`Fallback to proxy for: ${imageId}`);
             img.src = `/api/image-proxy?fileId=${imageId}`;
