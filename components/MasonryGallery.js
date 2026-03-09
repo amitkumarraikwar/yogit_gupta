@@ -67,11 +67,24 @@ const MasonryGallery = ({ images = [], columns = 3 }) => {
 };
 
 const handleImageError = (e) => {
-    const parent = e.target.parentElement;
-    if (!parent) return;
+    const img = e.target;
+    const parent = img.parentElement;
+    if (!parent || !img.src) return;
+
+    // If the error happened on a direct Google link, try the proxy instead
+    if (img.src.includes("googleusercontent.com") && !img.src.includes("/api/image-proxy")) {
+        const imageId = img.src.split('/').pop();
+        if (imageId) {
+            console.log(`Fallback to proxy for: ${imageId}`);
+            img.src = `/api/image-proxy?fileId=${imageId}`;
+            return; // Exit and let the proxy try to load
+        }
+    }
+
+    // If already on proxy or not a Google link, show the error UI
     parent.classList.add("bg-gray-100");
     parent.classList.add("p-4");
-    e.target.style.display = "none";
+    img.style.display = "none";
 
     // Remove any existing error messages
     const existing = parent.querySelector(".error-msg");
@@ -84,3 +97,4 @@ const handleImageError = (e) => {
 };
 
 export default MasonryGallery;
+

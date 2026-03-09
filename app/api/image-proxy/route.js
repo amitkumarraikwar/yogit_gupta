@@ -35,26 +35,27 @@ export async function GET(request) {
 
         const drive = google.drive({ version: 'v3', auth });
 
-        // Get file metadata to find mimeType
-        const fileMetadata = await drive.files.get({
-            fileId: fileId,
-            fields: 'mimeType',
-        });
-
-        // Get the actual file content as a stream
+        // Get the actual file content as a stream directly
+        // We'll trust the stream's headers or use a default
         const response = await drive.files.get(
             { fileId: fileId, alt: 'media' },
             { responseType: 'stream' }
         );
 
+        // Try to get contentType from response headers, fallback to image/jpeg
+        const contentType = response.headers['content-type'] || 'image/jpeg';
+
         return new NextResponse(response.data, {
             headers: {
-                'Content-Type': fileMetadata.data.mimeType || 'image/jpeg',
-                'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=86400, s-maxage=86400', // Cache for 24h
             },
         });
     } catch (error) {
         console.error('Image Proxy Error:', error);
-        return new NextResponse('Failed to fetch image from Google Drive', { status: 500 });
+        // If it's a 404/403, it might be permissions
+        const status = error.code || 500;
+        return new NextResponse(`Failed to fetch image: ${error.message}`, { status });
     }
 }
+
